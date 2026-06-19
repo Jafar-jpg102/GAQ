@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💊 دوائي الذكي | Dawaee AI</title>
+
+<style>
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    background: #f4f7f6;
+    color: #333;
+    transition: 0.3s;
+}
+
+body.dark {
+    background: #121212 !important;
+    color: #ffffff !important;
+}
+
+header {
+    background: #0b8f6a;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.container {
+    padding: 15px;
+    max-width: 600px;
+    margin: auto;
+}
+
+.disclaimer-box {
+    background: #fff3cd;
+    border-right: 5px solid #ffc107;
+    color: #856404;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+body.dark .disclaimer-box {
+    background: #332701 !important;
+    color: #ffda6a !important;
+}
+
+.search-box-container {
+    position: relative;
+}
+
+input {
+    width: 100%;
+    padding: 14px;
+    margin: 8px 0;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    font-size: 16px;
+}
+
+body.dark input {
+    background: #222 !important;
+    color: white !important;
+    border-color: #444 !important;
+}
+
+#suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    z-index: 9999;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+body.dark #suggestions {
+    background: #222 !important;
+    border-color: #444 !important;
+}
+
+#suggestions div {
+    padding: 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    color: #333;
+}
+
+body.dark #suggestions div { 
+    border-bottom: 1px solid #333 !important; 
+    color: #fff !important;
+}
+
+#suggestions div:hover { background: #f0f0f0; }
+body.dark #suggestions div:hover { background: #333 !important; }
+
+button {
+    width: 100%;
+    padding: 14px;
+    margin: 6px 0;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+button:active { transform: scale(0.98); }
+
+.btn-search { background: #0b8f6a; color: white; }
+.btn-voice { background: #2196F3; color: white; }
+.btn-image { background: #9c27b0; color: white; }
+.btn-clear { background: #e57373; color: white; }
+.btn-share { background: #ffb74d; color: #333; }
+
+.card {
+    background: white;
+    padding: 18px;
+    border-radius: 12px;
+    margin-top: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    line-height: 1.6;
+}
+
+body.dark .card { background: #1e1e1e !important; color: white !important; }
+
+.top-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.round-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: #0b8f6a;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.item-link {
+    display: inline-block;
+    background: #e0f2f1;
+    color: #0b8f6a;
+    padding: 5px 10px;
+    margin: 4px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+body.dark .item-link {
+    background: #2c3e50;
+    color: #1abc9c;
+}
+
+.loading { text-align: center; color: #0b8f6a; font-weight: bold; }
+#imagePreview {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 10px;
+    margin-top: 10px;
+    display: none;
+    border: 2px dashed #0b8f6a;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1 id="mainTitle">💊 دوائي الذكي | Dawaee AI</h1>
+</header>
+
+<div class="container">
+    
+    <div class="top-buttons">
+        <button class="round-btn" onclick="toggleDarkMode()">🌙</button>
+        <button class="round-btn" onclick="toggleLanguage()">🌐</button>
+    </div>
+
+    <div class="disclaimer-box" id="disclaimer">
+        ⚠️ تنبيه مهم جداً: هذا الموقع مخصص للتوعية والتثقيف الطبي فقط، ولا يغني إطلاقاً عن استشارة الطبيب المختص أو الصيدلاني. لا تتناول أي علاج دون استشارة طبية.
+    </div>
+
+    <div class="search-box-container">
+        <input id="search" placeholder="اكتب اسم الدواء أو العرض المرضي (صداع، مغص)..." oninput="showSuggestions()" autocomplete="off" autofocus>
+        <div id="suggestions"></div>
+    </div>
+
+    <button class="btn-search" id="btnSearch" onclick="searchWithAI()">🔍 ابحث بواسطة الذكاء الاصطناعي</button>
+    <button class="btn-voice" id="btnVoice" onclick="startVoiceSearch()">🎤 ابحث بالصوت (لهجة عراقية)</button>
+
+    <hr style="border: 0; border-top: 1px solid #ccc; margin: 20px 0;">
+
+    <b id="txtPhoto">📸 أو التقط صورة للروشتة / علبة الدواء:</b>
+    <input type="file" id="imageInput" accept="image/*" onchange="previewImage()" style="padding:10px; background:white; border-radius:10px; width:100%; box-sizing:border-box;">
+    <img id="imagePreview" src="" alt="معاينة الصورة">
+    
+    <button class="btn-image" id="btnImage" onclick="analyzeImageWithAI()">📷 إمسح الصورة وحللها بالذكاء الاصطناعي</button>
+    
+    <div style="display: flex; gap: 10px;">
+        <button class="btn-clear" id="btnClear" onclick="clearSearch()">🗑️ مسح الكل</button>
+        <button class="btn-share" id="btnShare" onclick="shareDrug()">📤 مشاركة النتيجة</button>
+    </div>
+
+    <div id="result" class="card">
+        اكتب اسم دواء، ابحث بصوتك، أو ارفع صورة روشتة، وسيقوم الذكاء الاصطناعي بتحليل واستخراج البدائل والسلبيات فوراً...
+    </div>
+
+    <div id="history" class="card">
+        <b id="txtHistory">آخر عمليات البحث:</b>
+        <div id="historyList" style="margin-top:8px;"></div>
+    </div>
+
+</div>
+
+<script>
+// تثبيت مفتاحك الأصلي الصحيح والمستقر
+const apiKey = "AQ.Ab8RN6LodZcPcLPzBSI_Vnd26jc_xgQhTdsLWZqmsC8KUmE9pw"; 
+let currentDrug = "";
+let currentLang = "ar";
+
+const commonKeywords = [
+    "باراسيتامول", "بارسيتول", "برسيتول", "بندول", "سيتامول", "بروفين", "إيبوبروفين", "فولتارين", 
+    "أموكسيسيلين", "أوغمينتين", "بوسكوبان", "صداع", "مغص", "لعبان نفس", "قرحة المعدة", "السكري"
+];
+
+const fixes = {
+    "برسيتول": "باراسيتامول",
+    "بارسيتول": "باراسيتامول",
+    "بر": "باراسيتامول",
+    "اموكسيل": "أموكسيسيلين"
+};
+
+function toggleDarkMode() { document.body.classList.toggle("dark"); }
+
+function toggleLanguage() {
+    currentLang = currentLang === "ar" ? "en" : "ar";
+    document.documentElement.dir = currentLang === "ar" ? "rtl" : "ltr";
+    document.documentElement.lang = currentLang;
+    
+    if (currentLang === "en") {
+        document.getElementById("mainTitle").innerText = "💊 Smart Medicine | Dawaee AI";
+        document.getElementById("search").placeholder = "Type drug name or symptom (headache, colic)...";
+        document.getElementById("btnSearch").innerText = "🔍 Search with AI";
+        document.getElementById("btnVoice").innerText = "🎤 Voice Search";
+        document.getElementById("btnImage").innerText = "📷 Scan & Analyze Image";
+        document.getElementById("btnClear").innerText = "🗑️ Clear All";
+        document.getElementById("btnShare").innerText = "📤 Share Result";
+        document.getElementById("txtPhoto").innerText = "📸 Or take a picture of prescription / medicine box:";
+        document.getElementById("txtHistory").innerText = "Recent Searches:";
+        document.getElementById("disclaimer").innerText = "⚠️ Important Warning: This site is for medical awareness only and is NOT a substitute for consulting a doctor or pharmacist.";
+    } else {
+        document.getElementById("mainTitle").innerText = "💊 دوائي الذكي | Dawaee AI";
+        document.getElementById("search").placeholder = "اكتب اسم الدواء أو العرض المرضي (صداع، مغص)...";
+        document.getElementById("btnSearch").innerText = "🔍 ابحث بواسطة الذكاء الاصطناعي";
+        document.getElementById("btnVoice").innerText = "🎤 ابحث بالصوت (لهجة عراقية)";
+        document.getElementById("btnImage").innerText = "📷 إمسح الصورة وحللها بالذكاء الاصطناعي";
+        document.getElementById("btnClear").innerText = "🗑️ مسح الكل";
+        document.getElementById("btnShare").innerText = "📤 مشاركة النتيجة";
+        document.getElementById("txtPhoto").innerText = "📸 أو التقط صورة للروشتة / علبة الدواء:";
+        document.getElementById("txtHistory").innerText = "آخر عمليات البحث:";
+        document.getElementById("disclaimer").innerText = "⚠️ تنبيه مهم جداً: هذا الموقع مخصص للتوعية والتثقيف الطبي فقط، ولا يغني إطلاقاً عن استشارة الطبيب المختص أو الصيدلاني.";
+    }
+}
+
+function showSuggestions() {
+    let q = document.getElementById("search").value.trim().toLowerCase();
+    const box = document.getElementById("suggestions");
+    if (!q) { box.innerHTML = ""; box.style.display = "none"; return; }
+
+    const matches = commonKeywords.filter(x => x.toLowerCase().includes(q));
+    if (matches.length > 0) {
+        box.style.display = "block";
+        box.innerHTML = matches.map(x => `<div onclick="selectSuggestion('${x}')">💊 ${x}</div>`).join("");
+    } else { box.style.display = "none"; }
+}
+
+function selectSuggestion(name) {
+    if (fixes[name]) name = fixes[name];
+    document.getElementById("search").value = name;
+    document.getElementById("suggestions").style.display = "none";
+    searchWithAI();
+}
+
+function startVoiceSearch() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) { alert("البحث بالصوت غير مدعوم في هذا المتصفح"); return; }
+    const recognition = new SpeechRecognition();
+    recognition.lang = "ar-IQ";
+    recognition.start();
+    document.getElementById("result").innerHTML = `<div class="loading">🎤 جاري الاستماع.. تكلم الآن...</div>`;
+    recognition.onresult = function(event) {
+        let text = event.results[0][0].transcript;
+        document.getElementById("search").value = text;
+        searchWithAI();
+    };
+}
+
+function previewImage() {
+    const file = document.getElementById("imageInput").files[0];
+    const preview = document.getElementById("imagePreview");
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) { preview.src = e.target.result; preview.style.display = "block"; }
+        reader.readAsDataURL(file);
+    }
+}
+
+function clearSearch() {
+    document.getElementById("search").value = "";
+    document.getElementById("imageInput").value = "";
+    document.getElementById("imagePreview").style.display = "none";
+    document.getElementById("result").innerHTML = "تم المسح...";
+}
+
+const systemInstruction = `أنت مساعد صيدلاني ذكي مخصص للسوق العراقي. قم بتحليل الطلب وإعطاء النتيجة بالتفصيل مستخدماً النقاط التالية وباللغة العربية المبسطة القريبة للعراآيين:
+1. **الشكل الدوائي بالأيقونات**.
+2. **المادة الفعالة**.
+3. **الاستخدام الأساسي**.
+4. **السعر التقريبي في العراق**.
+5. **المنشأ أو الشركة**.
+6. **البدائل المتوفرة بالعراق**.
+7. **هل يصلح لأصحاب السكر والضغط والأمراض المزمنة؟** (اذكر السلبيات وموانع الاستعمال بوضوح شديد).
+8. **سلامة الحامل والمرضع والطفل**.
+9. **نصيحة التوقيت والتداخل**.
+10. **تحذير الجرعة الزائدة**.
+في النهاية، أضف دائماً تنبيه صارم أن هذا للتوعية فقط ويجب استشارة الطبيب أو الصيدلي.`;
+
+async function searchWithAI() {
+    let query = document.getElementById("search").value.trim();
+    if (fixes[query.toLowerCase()]) query = fixes[query.toLowerCase()];
+    
+    if (!query) { alert("اكتب شيئاً أولاً!"); return; }
+    currentDrug = query;
+    saveHistory(query);
+
+    document.getElementById("result").innerHTML = `<div class="loading">⏳ جاري التحليل بالذكاء الاصطناعي...</div>`;
+    
+    const body = { contents: [{ parts: [{ text: `${systemInstruction}\n\nالمريض يبحث عن: "${query}"` }] }] };
+    sendToGemini(body);
+}
+
+async function analyzeImageWithAI() {
+    const fileInput = document.getElementById("imageInput");
+    if (fileInput.files.length === 0) { alert("اختار صورة أولاً!"); return; }
+    document.getElementById("result").innerHTML = `<div class="loading">📸 جاري قراءة الصورة بالذكاء الاصطناعي...</div>`;
+    
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    reader.onloadend = async function() {
+        const base64Data = reader.result.split(",")[1];
+        const body = {
+            contents: [{
+                parts: [
+                    { text: `${systemInstruction}\n\nاقرأ الصورة وحللها حسب التعليمات.` },
+                    { inlineData: { mimeType: file.type, data: base64Data } }
+                ]
+            }]
+        };
+        sendToGemini(body);
+    };
+    reader.readAsDataURL(file);
+}
+
+async function sendToGemini(body) {
+    // تم تغيير المسار إلى النسخة v1 والموديل المستقر الثابت تماماً لإنهاء مشكلة الاختفاء
+    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    try {
+        const response = await fetch(url, { 
+            method: "POST", 
+            headers: { "Content-Type": "application/json" }, 
+            body: JSON.stringify(body) 
+        });
+        const data = await response.json();
+        renderResult(data);
+    } catch (e) {
+        document.getElementById("result").innerHTML = `❌ فشل الاتصال بالسيرفر.<br><br>💡 نصيحة: افتح الموقع بمتصفح Chrome الخارجي من خيارات Acode لتخطي حماية البيئة الداخلية!`;
+    }
+}
+
+function renderResult(data) {
+    if (data.candidates && data.candidates[0].content.parts[0].text) {
+        let aiResponse = data.candidates[0].content.parts[0].text;
+        aiResponse = aiResponse.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+        document.getElementById("result").innerHTML = `<div>${aiResponse}</div>`;
+    } else if (data.error) {
+        document.getElementById("result").innerHTML = `❌ خطأ من السيرفر: ${data.error.message}`;
+    } else {
+        document.getElementById("result").innerHTML = "❌ خطأ في الرد.";
+    }
+}
+
+function saveHistory(name) {
+    let history = JSON.parse(localStorage.getItem("ai_history") || "[]");
+    history.unshift(name);
+    history = [...new Set(history)].slice(0, 5);
+    localStorage.setItem("ai_history", JSON.stringify(history));
+    loadHistory();
+}
+
+function loadHistory() {
+    let history = JSON.parse(localStorage.getItem("ai_history") || "[]");
+    document.getElementById("historyList").innerHTML = history.map(x => `<span class="item-link" onclick="document.getElementById('search').value='${x}'; searchWithAI();">${x}</span>`).join(" ");
+}
+loadHistory();
+
+function shareDrug() {
+    if (!currentDrug) { alert("ابحث عن دواء أولاً"); return; }
+    if (navigator.share) { navigator.share({ title: "تطبيق دوائي الذكي", text: "تفاصيل دواء: " + currentDrug }); }
+    else { alert("المشاركة غير مدعومة على متصفحك"); }
+}
+
+document.addEventListener("click", function(e) { if (e.target.id !== "search") document.getElementById("suggestions").style.display = "none"; });
+</script>
+</body>
+</html>
