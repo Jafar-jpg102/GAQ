@@ -237,7 +237,7 @@ body.dark .item-link {
 </div>
 
 <script>
-// مفتاح الـ OpenRouter الجديد والشغال مية بالمية
+// مفتاح الـ OpenRouter المفعّل والشغال مية بالمية مالتك
 const apiKey = "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";
 
 let currentDrug = "";
@@ -362,6 +362,7 @@ async function searchWithAI() {
     
     const body = {
         model: "google/gemini-2.5-flash",
+        max_tokens: 1000, // مصلّح ومحدّد لعدم حدوث خطأ الـ Credit والـ Token
         messages: [
             { role: "system", content: systemInstruction },
             { role: "user", content: `المريض يبحث عن: "${query}"` }
@@ -381,6 +382,7 @@ async function analyzeImageWithAI() {
         const base64Data = reader.result.split(",")[1];
         const body = {
             model: "google/gemini-2.5-flash",
+            max_tokens: 1000, // مصلّح ومحدّد لعدم حدوث خطأ الـ Credit والـ Token
             messages: [
                 { role: "system", content: systemInstruction },
                 { 
@@ -404,7 +406,9 @@ async function sendToOpenRouter(body) {
             method: "POST", 
             headers: { 
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKey}`
+                "Authorization": `Bearer ${apiKey}`,
+                "HTTP-Referer": "https://github.com",
+                "X-Title": "Dawaee AI"
             }, 
             body: JSON.stringify(body) 
         });
