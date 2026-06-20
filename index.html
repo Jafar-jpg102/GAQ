@@ -33,6 +33,19 @@ header {
     margin: auto;
 }
 
+.key-box {
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+body.dark .key-box {
+    background: #1a237e !important;
+    border-color: #3f51b5 !important;
+}
+
 .disclaimer-box {
     background: #fff3cd;
     border-right: 5px solid #ffc107;
@@ -200,6 +213,12 @@ body.dark .item-link {
         <button class="round-btn" onclick="toggleLanguage()">🌐</button>
     </div>
 
+    <div class="key-box" id="keyBox">
+        <label style="font-weight: bold;">🔑 خطوة الأمان (مرة واحدة فقط):</label>
+        <input type="text" id="userApiKey" placeholder="الـصق مفتاح OpenRouter الجديد هنا ملوخ ثانية..." style="padding: 10px;">
+        <button class="btn-search" onclick="saveNewKey()" style="padding: 8px; font-size: 14px; margin-top: 5px;">💾 حفظ وتفعيل المفتاح</button>
+    </div>
+
     <div class="disclaimer-box" id="disclaimer">
         ⚠️ تنبيه مهم جداً: هذا الموقع مخصص للتوعية والتثقيف الطبي فقط، ولا يغني إطلاقاً عن استشارة الطبيب المختص أو الصيدلاني. لا تتناول أي علاج دون استشارة طبية.
     </div>
@@ -237,9 +256,6 @@ body.dark .item-link {
 </div>
 
 <script>
-// المفتاح الجديد مالتك تم وضعه هنا بنجاح
-const apiKey = "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";
-
 let currentDrug = "";
 let currentLang = "ar";
 
@@ -254,6 +270,22 @@ const fixes = {
     "بر": "باراسيتامول",
     "اموكسيل": "أموكسيسيلين"
 };
+
+function saveNewKey() {
+    let key = document.getElementById("userApiKey").value.trim();
+    if(!key) { alert("الرجاء إدخال المفتاح أولاً!"); return; }
+    localStorage.setItem("secure_or_key", key);
+    alert("✅ تم حفظ وتفعيل المفتاح بنجاح! هسة جرب ابحث.");
+    document.getElementById("keyBox").style.display = "none";
+}
+
+function checkKeyOnLoad() {
+    let storedKey = localStorage.getItem("secure_or_key");
+    if(storedKey) {
+        document.getElementById("keyBox").style.display = "none";
+    }
+}
+window.onload = checkKeyOnLoad;
 
 function toggleDarkMode() { document.body.classList.toggle("dark"); }
 
@@ -401,12 +433,20 @@ async function analyzeImageWithAI() {
 
 async function sendToOpenRouter(body) {
     const url = "https://openrouter.ai/api/v1/chat/completions";
+    let activeKey = localStorage.getItem("secure_or_key");
+    
+    if(!activeKey) {
+        document.getElementById("result").innerHTML = `⚠️ الرجاء إدخال وحفظ مفتاح OpenRouter الجديد في المربع بالأعلى أولاً للتشغيل الحامي والمستقر.`;
+        document.getElementById("keyBox").style.display = "block";
+        return;
+    }
+
     try {
         const response = await fetch(url, { 
             method: "POST", 
             headers: { 
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKey}`,
+                "Authorization": `Bearer ${activeKey}`,
                 "HTTP-Referer": "https://github.com",
                 "X-Title": "Dawaee AI"
             }, 
@@ -415,44 +455,11 @@ async function sendToOpenRouter(body) {
         const data = await response.json();
         renderResult(data);
     } catch (e) {
-        document.getElementById("result").innerHTML = `❌ فشل الاتصال بالسيرفر.<br><br>💡 نصيحة: تأكد من اتصال الإنترنت وحفظ الملف بشكل صحيح على جيت هاب.`;
+        document.getElementById("result").innerHTML = `❌ فشل الاتصال بالسيرفر.<br><br>💡 نصيحة: تأكد من صحة المفتاح المدخل واتصال الإنترنت.`;
     }
 }
 
 function renderResult(data) {
     if (data.choices && data.choices[0].message.content) {
         let aiResponse = data.choices[0].message.content;
-        aiResponse = aiResponse.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
-        document.getElementById("result").innerHTML = `<div>${aiResponse}</div>`;
-    } else if (data.error) {
-        document.getElementById("result").innerHTML = `❌ خطأ من السيرفر: ${data.error.message}`;
-    } else {
-        document.getElementById("result").innerHTML = "❌ خطأ في الرد من سيرفر OpenRouter.";
-    }
-}
-
-function saveHistory(name) {
-    let history = JSON.parse(localStorage.getItem("ai_history") || "[]");
-    history.unshift(name);
-    history = [...new Set(history)].slice(0, 5);
-    localStorage.setItem("ai_history", JSON.stringify(history));
-    loadHistory();
-}
-
-function loadHistory() {
-    let history = JSON.parse(localStorage.getItem("ai_history") || "[]");
-    document.getElementById("historyList").innerHTML = history.map(x => `<span class="item-link" onclick="document.getElementById('search').value='${x}'; searchWithAI();">${x}</span>`).join(" ");
-}
-loadHistory();
-
-function shareDrug() {
-    if (!currentDrug) { alert("ابحث عن دواء أولاً"); return; }
-    if (navigator.share) { navigator.share({ title: "تطبيق دوائي الذكي", text: "تفاصيل دواء: " + currentDrug }); }
-    else { alert("المشاركة غير مدعومة على متصفحك"); }
-}
-
-document.addEventListener("click", function(e) { if (e.target.id !== "search") document.getElementById("suggestions").style.display = "none"; });
-</script>
-</body>
-    </html>
         
