@@ -237,10 +237,8 @@ body.dark .item-link {
 </div>
 
 <script>
-// تكتيك التمويه المتقدم وتشفير المفتاح لمنع حظر جيت هاب التلقائي
-const segmentB = "3fKgMq-kmiyXyfqDem9nOi70PpCwIFqxLMhoig";
-const segmentA = "AQ.Ab8RN6JjR6T1";
-const apiKey = segmentA + segmentB;
+// مفتاح الـ OpenRouter الجديد والشغال مية بالمية
+const apiKey = "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";
 
 let currentDrug = "";
 let currentLang = "ar";
@@ -362,8 +360,14 @@ async function searchWithAI() {
 
     document.getElementById("result").innerHTML = `<div class="loading">⏳ جاري التحليل بالذكاء الاصطناعي...</div>`;
     
-    const body = { contents: [{ parts: [{ text: `${systemInstruction}\n\nالمريض يبحث عن: "${query}"` }] }] };
-    sendToGemini(body);
+    const body = {
+        model: "google/gemini-2.5-flash",
+        messages: [
+            { role: "system", content: systemInstruction },
+            { role: "user", content: `المريض يبحث عن: "${query}"` }
+        ]
+    };
+    sendToOpenRouter(body);
 }
 
 async function analyzeImageWithAI() {
@@ -376,42 +380,50 @@ async function analyzeImageWithAI() {
     reader.onloadend = async function() {
         const base64Data = reader.result.split(",")[1];
         const body = {
-            contents: [{
-                parts: [
-                    { text: `${systemInstruction}\n\nاقرأ الصورة وحللها حسب التعليمات.` },
-                    { inlineData: { mimeType: file.type, data: base64Data } }
-                ]
-            }]
+            model: "google/gemini-2.5-flash",
+            messages: [
+                { role: "system", content: systemInstruction },
+                { 
+                    role: "user", 
+                    content: [
+                        { type: "text", text: "اقرأ الصورة وحللها حسب التعليمات الموكلة إليك." },
+                        { type: "image_url", image_url: { url: `data:${file.type};base64,${base64Data}` } }
+                    ]
+                }
+            ]
         };
-        sendToGemini(body);
+        sendToOpenRouter(body);
     };
     reader.readAsDataURL(file);
 }
 
-async function sendToGemini(body) {
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+async function sendToOpenRouter(body) {
+    const url = "https://openrouter.ai/api/v1/chat/completions";
     try {
         const response = await fetch(url, { 
             method: "POST", 
-            headers: { "Content-Type": "application/json" }, 
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`
+            }, 
             body: JSON.stringify(body) 
         });
         const data = await response.json();
         renderResult(data);
     } catch (e) {
-        document.getElementById("result").innerHTML = `❌ فشل الاتصال بالسيرفر.<br><br>💡 نصيحة: افتح الموقع بمتصفح Chrome الخارجي من خيارات Acode لتخطي حماية البيئة الداخلية!`;
+        document.getElementById("result").innerHTML = `❌ فشل الاتصال بالسيرفر.<br><br>💡 نصيحة: تأكد من اتصال الإنترنت وحفظ الملف بشكل صحيح على جيت هاب.`;
     }
 }
 
 function renderResult(data) {
-    if (data.candidates && data.candidates[0].content.parts[0].text) {
-        let aiResponse = data.candidates[0].content.parts[0].text;
+    if (data.choices && data.choices[0].message.content) {
+        let aiResponse = data.choices[0].message.content;
         aiResponse = aiResponse.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
         document.getElementById("result").innerHTML = `<div>${aiResponse}</div>`;
     } else if (data.error) {
         document.getElementById("result").innerHTML = `❌ خطأ من السيرفر: ${data.error.message}`;
     } else {
-        document.getElementById("result").innerHTML = "❌ خطأ في الرد.";
+        document.getElementById("result").innerHTML = "❌ خطأ في الرد من سيرفر OpenRouter.";
     }
 }
 
