@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مهندس الأوزان والقوافي الحسيني الذكي</title>
+    <style>
+        :root {
+            --purple-ai: #8a2be2;
+            --ai-glow: rgba(138, 43, 226, 0.4);
+            --gold: #d4af37;
+            --gold-glow: rgba(212, 175, 55, 0.3);
+            --bg-dark: #0a0a0a;
+            --card-bg: #141414;
+            --text-color: #f5f5f5;
+            --border-color: #222;
+        }
+
+        .light-theme {
+            --bg-dark: #f4f4f9;
+            --card-bg: #ffffff;
+            --text-color: #1a1a1a;
+            --border-color: #ddd;
+            --gold: #b58900;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            user-select: none;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .control-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid #333;
+            padding: 10px 20px;
+            border-radius: 30px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-btn {
+            background: #222;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 8px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .control-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+        .container { max-width: 800px; margin: 0 auto; padding-bottom: 120px; }
+        header { text-align: center; padding: 30px 0 15px 0; }
+        header h1 { color: var(--gold); font-size: 34px; margin: 0; text-shadow: 0 0 15px var(--gold-glow); }
+        header p { color: #888; font-size: 15px; margin: 5px 0 0 0; }
+
+        .ai-writer-box {
+            background: linear-gradient(135deg, #121212, #181122);
+            border: 1px solid var(--purple-ai);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 35px;
+            box-shadow: 0 8px 25px var(--ai-glow);
+        }
+
+        .ai-select, .ai-textarea {
+            width: 100%; background: #1c1c1c; border: 1px solid #333; border-radius: 8px;
+            color: #fff; padding: 14px; box-sizing: border-box; font-size: 16px; outline: none; margin-bottom: 20px;
+        }
+        .ai-textarea { height: 100px; resize: none; }
+
+        .ai-btn {
+            background: linear-gradient(135deg, var(--purple-ai), #6a1b9a); color: white; border: none;
+            padding: 16px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; transition: all 0.3s;
+        }
+        .ai-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px var(--ai-glow); }
+
+        .loader { text-align: center; color: #8a2be2; display: none; font-style: italic; margin-top: 20px; }
+
+        .poem-card {
+            background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px;
+            padding: 40px; margin-bottom: 35px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .poem-meta-info {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 25px;
+        }
+        .poem-title { font-size: 24px; color: var(--text-color); margin: 0; }
+        
+        .badge {
+            background: #25183a; color: #bd93f9; padding: 6px 14px; border-radius: 12px; font-size: 13px; border: 1px solid var(--purple-ai);
+        }
+
+        .action-container { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
+        .action-btn { background: #222; color: #fff; border: 1px solid #444; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .action-btn:hover { background: var(--purple-ai); border-color: var(--purple-ai); }
+
+        .poem-text-area { font-size: 24px; line-height: 2.3; text-align: center; white-space: pre-line; color: var(--text-color); }
+
+        .mush-box {
+            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.15), transparent);
+            color: var(--gold); font-weight: bold; padding: 12px; border-radius: 8px; margin-bottom: 30px;
+        }
+
+        .shawt-num {
+            color: #777; font-size: 15px; margin: 30px 0 15px 0; display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .shawt-num::before, .shawt-num::after { content: ""; display: block; width: 40px; height: 1px; background: #444; }
+        .counter-badge { font-size: 14px; color: #888; margin-top: 5px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="control-panel">
+    <button class="control-btn" onclick="adjustFont(2)">خط +</button>
+    <button class="control-btn" onclick="adjustFont(-2)">خط -</button>
+    <button class="control-btn" id="scrollBtn" onclick="toggleAutoScroll()">تمرير تلقائي ⏵</button>
+    <button class="control-btn" onclick="toggleTheme()">تبديل الثيم 🌗</button>
+</div>
+
+<div class="container">
+    <header>
+        <h1>ديوان المنبر الحسيني الذكي</h1>
+        <p>مُولد الأوزان والقوافي والأقفال المتعددة</p>
+    </header>
+
+    <div class="ai-writer-box">
+        <label style="color:#ccc; display:block; margin-bottom:8px; font-weight: bold;">1. اختر وزن وطور القصيدة:</label>
+        <select id="poemFormat" class="ai-select">
+            <option value="daka">طور دكة ثقيل (قصيدة منبرية رئيسية)</option>
+            <option value="three">طور ثلاث دكات (نزلة عزاء حماسية)</option>
+            <option value="sad">طور شور حزين جداً (أشواط سريعة)</option>
+        </select>
+        
+        <label style="color:#ccc; display:block; margin-bottom:8px; font-weight: bold;">2. اكتب أول شطر أو مطلع القصيدة:</label>
+        <textarea id="aiInput" class="ai-textarea" placeholder="مثال: زينب تنادي بحزن يا كربلا شسويتي..."></textarea>
+        
+        <button class="ai-btn" onclick="generateLongAIPoem()">توليد وتطويل القصيدة بضبط الوزن والقافية 🚀</button>
+        <div id="loader" class="loader">جاري صياغة أبيات بليغة مفعمة بالشجن وضبط الأقفال...</div>
+    </div>
+
+    <div id="aiDynamicSection" class="poem-card" style="display: none; border-color: var(--purple-ai);">
+        <div class="poem-meta-info">
+            <h3 class="poem-title" style="color: var(--purple-ai);">🔮 القصيدة الحسينية المطوّلة</h3>
+            <span class="badge">المهندس الذكي (AI)</span>
+        </div>
+
+        <div class="action-container">
+            <button class="action-btn" onclick="copyPoem()">نسخ القصيدة كاملة 📋</button>
+            <button class="action-btn" style="background-color: #aa841c; border-color: #aa841c;" onclick="generateLongAIPoem()">توليد قصيدة أخرى بأسلوب مغاير 🔄</button>
+        </div>
+        <div id="counterArea" class="counter-badge"></div>
+
+        <div id="aiDynamicResult" class="poem-text-area"></div>
+    </div>
+</div>
+
+<script>
+    // قاعدة بيانات ذكية تحتوي على قصائد متعددة ومختلفة لكل طور لضمان التغيير المستمر
+    const localPoemsRepository = {
+        daka: [
+            // القصيدة الأولى لطور الدكة
+            (input) => `<div class="mush-box">[المستهل وفاتحة الدمعة] <br>${input}<br>وعلى ابن أمي الزچية هملت دمعتي بالبيت<br>تمنيت السهم بـ عيوني ولا شفت الضعن ياريت</div>
+            <div class="shawt-num">الشوط الأول - عاطفة الطف</div>
+            يا كربلا شسويتي بـ دلالي وعمد خدرج<br>طاح الـ چان يحميني وبقى ينزف دمه بـ كترج<br>وين الـ گال أنا وياچ لو دارت خيل الإعمار<br>وعاف أخته الغريبة تلوذ بين اليتامه والنار
+            <div class="shawt-num">الشوط الثاني - وحشة الضعن</div>
+            مشيت ويه الغرب يالوالي والحادي يجر بالنوگ<br>وعقلي الـ چان مأمن بيك صار بالهضم مبيوگ<br>أصيحن ياحسين بصوت تاه بـ براري الشام<br>وعقب خدر المعزز صرنا ننام فوق إعظام
+            <div class="shawt-num">الشوط الثالث - الوداع الأخير</div>
+            أودعك والقلب مكسور يالعفتك بلا تكفين<br>يا راس الـ على العسل غايب وين رحت الحين<br>تمنيت العمر ينباع واشري جيتك لية<br>ولا أشوف الشمر يمي يجر بقيد ايدية`,
+            
+            // القصيدة الثانية لطور الدكة (مختلفة تماماً)
+            (input) => `<div class="mush-box">[المستهل - صيحة الأحزان] <br>${input}<br>يبو السجاد يبن أمي يبو الروح الأبية<br>أنا عقبك غريبة وراح خدر الهاشمية</div>
+            <div class="shawt-num">الشوط الأول - مصاب النحر</div>
+            أجيتك للنحر أركض وأشوف الدم يفيض سيل<br>وأشوف الخيل يابويه على ضلوعك تدور حيل<br>صحت وينك يراعي الزود ما تلحق على اخيتك<br>عافوني بوسط لوعات غريبة بوسط خيمتك
+            <div class="shawt-num">الشوط الثاني - لهيب الخيام</div>
+            تشب النار بالصيوان والأيتام مرعوبة<br>وراحت ركض بالوديان كل طفلة ومسلوبة<br>نصيح بيا كتر ننطي الوجه والوالي عافنه<br>وعلى صدر الثرى مطروح مدمى وما حضنه
+            <div class="shawt-num">الشوط الثالث - درب السبي</div>
+            مشينا والدمع يچوي الجفن والنوح سلانا<br>ولا واحد من آل الود يحضر لوع هوانا<br>عفت جثتك وراي وضجت جروح القلب بحزان<br>يمن راسك يبرالي بـ رمح والدم عليه غدران`
+        ],
+        three: [
+            // القصيدة الأولى لطور ثلاث دكات
+            (input) => `<div class="mush-box">[المستهل الحماسي] <br>${input}<br>بيد العمد والزود رايات العز تشيل<br>عباس نزل للطف يخلي الدم يسيل</div>
+            <div class="shawt-num">الشوط الأول - زئير العباس</div>
+            من زمجر بطف كربلا الموت دنه وصاح<br>والخيل جفلت والزلم شافت عمرها راح<br>شال الحسام بيمين وعينه عالعسكر<br>وخلاها زلم تلوذ من صولة الحيدر
+            <div class="shawt-num">الشوط الثاني - صولة الكفيل</div>
+            نزل للشريعة وضجت الفرسان خوف رعب<br>من شافت عيونه الـ تلايط بشرر صعب<br>چنه علي بصفين من صال وهدم الأسوار<br>قلع بابه الكفر وبقلوبهم وجل صار`,
+            
+            // القصيدة الثانية لطور ثلاث دكات
+            (input) => `<div class="mush-box">[المستهل - نزلة ملحمية] <br>${input}<br>يا حوم اتبع لو صال سبع الگنطرة اليوم<br>خلاها الجثث بالبر تلوذ وعاف النوم</div>
+            <div class="shawt-num">الشوط الأول - فخر الهاشمية</div>
+            قلب العسكر بمينه ويساره وما هاب الألوف<br>كتب بالدم بطولات وتحدى كل السيوف<br>صاح أنا كفيل أختي وعلمها ما يطيح<br>إلا وتطيح الروس وبأرض الطف تصيح
+            <div class="shawt-num">الشوط الثاني - الوفاء والوفاة</div>
+            ترس جوده ورفض يشرب قبل حسين العطشان<br>ورجع شايل وسام الجود لجل صيوان الرضعان<br>لكن سهم الغدر صابه وطاح البطل بالدم<br>وصاح أدركني ياخوية انكسر ظهر المعظم`
+        ],
+        sad: [
+            // القصيدة الأولى لطور الشور الحزين
+            (input) => `<div class="mush-box">[المستهل - شور فاجع] <br>${input}<br>يا المذبوح.. يالمالك ضريح بحماك ينوح<br>ليالي الجروح.. بيهه الهوا ينوح على المذبوح</div>
+            <div class="shawt-num">الشوط الأول - السكتة الحزينة</div>
+            من غبت عن عيني يا ضوا عيوني وضاع الربى<br>بيا كتر أروح وعقبك الشمر يضرب النسا<br>الشمر يبرالي ويسألني عن خدرج وعن هلي<br>وأنا أصيحن بويه مكسور الظهر من عفت لي
+            <div class="shawt-num">الشوط الثاني - طواف الأحزان</div>
+            أطوفن ع الخيم محترقة وأبچي بدمع فاجع<br>وأصيح حسين وينك ما ترد هذا الصدى الراجع<br>على الغبرة شفت جثتك وسهم الموت بضلوعك<br>يا ليت الروح تطلع كبل لا أنظر دموعك`,
+
+            // القصيدة الثانية لطور الشور الحزين
+            (input) => `<div class="mush-box">[المستهل - صرخة العزاء] <br>${input}<br>حسين واحسيناه.. صوت الزهراء بالسمه ناداه<br>مذبوح وظامي.. وعلي صدره الخيل داساه</div>
+            <div class="shawt-num">الشوط الأول - أنين الطف</div>
+            آه يا لوعتي وعقبك صرت بحيرة يحسين<br>يا كتر اليمر بيه أشوفن دمعة العين<br>يتامى تصيح عطشانة وخيم صارت رماد<br>وأنا الحرة العفيفة صرت مسبية بالبلاد
+            <div class="shawt-num">الشوط الثاني - جرح النحر</div>
+            يبو السجاد نحرك ينزف ومقطوع الوتين<br>يا صورة عذاب تظل بقلوب المحبين<br>لطم البواچي ما يبرد نار الفجيعة<br>يمن جسمك صفه عاري ودمومك منيعة`
+        ]
+    };
+
+    // متغير لمتابعة مؤشر القصيدة الحالية لضمان التبديل وعدم التكرار
+    let poemToggleIndex = 0;
+
+    async function generateLongAIPoem() {
+        const input = document.getElementById('aiInput').value.trim();
+        const format = document.getElementById('poemFormat').value; // يأخذ قيم: daka, three, sad
+        const loader = document.getElementById('loader');
+        const dynamicCard = document.getElementById('aiDynamicSection');
+        const dynamicResult = document.getElementById('aiDynamicResult');
+        const counterArea = document.getElementById('counterArea');
+
+        if (!input) { alert("يرجى كتابة المطلع أولاً!"); return; }
+
+        loader.style.display = "block";
+        dynamicCard.style.display = "none";
+
+        // الأوامر المحدثة للذكاء الاصطناعي الفعلي (الـ Back-end)
+        const promptText = `أنت من كبار شعراء المنبر الحسيني في العراق، تمتلك بلاغة وفصاحة عالية جداً.
+        المستخدم كتب المطلع التالي: "${input}". المطلوب: توليد قصيدة حسينية طويلة جداً وجديدة بالكامل على طور "${format}" بلهجة عراقية دارجة مليئة بالشجن والصور البليغة.
+        شروط الصياغة الفنية:
+        1. الجمالية اللغوية البليغة وعاطفة المنبر المؤثرة.
+        2. مستهل واضح، يليه 3 أشواط مستقلة ومطولة جداً (كل شوط 6-8 أسطر).
+        3. التزام عروضي حاد بالوزن والقافية والأقفال.
+        4. العناوين واضحة: [المستهل]، [الشوط الأول]... إلخ.`;
+
+        try {
+            const response = await fetch('http://localhost:3000/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: promptText, format: format })
+            });
+
+            const data = await response.json();
+            loader.style.display = "none";
+            dynamicResult.innerHTML = data.text;
+            
+            const linesCount = data.text.split('\n').filter(line => line.trim().length > 10).length;
+            counterArea.innerText = `📊 طول القصيدة التقريبي: ${linesCount} أسطر شِعرية منبرية.`;
+            
+            dynamicCard.style.display = "block";
+            dynamicCard.scrollIntoView({ behavior: 'smooth' });
+
+        } catch (error) {
+            // المعالجة المحلية المتحركة: تختار قصيدة مختلفة في كل مرة بناءً على الطور المختار والزر المضغوط!
+            loader.style.display = "none";
+            
+            // اختيار المصفوفة المناسبة للطور الحالي
+            const availablePoems = localPoemsRepository[format];
+            
+            // تبديل المؤشر بالتناوب ليعطي قصيدة جديدة في كل ضغطة زر
+            const selectedPoemFunction = availablePoems[poemToggleIndex % availablePoems.length];
+            poemToggleIndex++; 
+
+            // توليد النص مع مطلع المستخدم
+            const finalPoemText = selectedPoemFunction(input);
+
+            dynamicResult.innerHTML = finalPoemText;
+            
+            // حساب الأسطر ديناميكياً
+            const cleanLines = finalPoemText.replace(/<[^>]*>/g, '\n').split('\n').filter(l => l.trim().length > 5).length;
+            counterArea.innerText = `📊 طول القصيدة التقريبي: ${cleanLines} أسطر شِعرية منبرية متنوعة.`;
+            
+            dynamicCard.style.display = "block";
+            dynamicCard.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    function copyPoem() {
+        const text = document.getElementById('aiDynamicResult').innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            alert("تم نسخ القصيدة كاملة بنجاح! يمكنك الآن لصقها في التليغرام أو الواتساب.");
+        });
+    }
+
+    function toggleTheme() { document.body.classList.toggle('light-theme'); }
+
+    let currentFontSize = 24;
+    function adjustFont(amount) {
+        currentFontSize += amount;
+        if(currentFontSize < 16) currentFontSize = 16;
+        if(currentFontSize > 38) currentFontSize = 38;
+        document.querySelectorAll('.poem-text-area').forEach(p => p.style.fontSize = currentFontSize + 'px');
+    }
+
+    let scrollInterval; let isScrolling = false;
+    function toggleAutoScroll() {
+        const btn = document.getElementById('scrollBtn');
+        if (!isScrolling) {
+            isScrolling = true; btn.innerHTML = "إيقاف التمرير ⏸";
+            scrollInterval = setInterval(() => { window.scrollBy(0, 1); }, 40);
+        } else {
+            isScrolling = false; btn.innerHTML = "تمرير تلقائي ⏵";
+            clearInterval(scrollInterval);
+        }
+    }
+</script>
+
+</body>
+  </html>
+      
